@@ -12,7 +12,7 @@ struct edge {
 typedef std::vector< std::vector< std::pair<int,int> > > adj_list;
 
 std::vector<edge> kruskal(const adj_list& graph);
-int find_in_tree(int vertex, const std::vector<int>& pred);
+int get_pred(int vertex, const std::vector<int>& pred);
 
 int main() {
 	int n,m; std::cin >> n >> m;
@@ -36,7 +36,7 @@ int main() {
 }
 
 std::vector<edge> kruskal(const adj_list& graph) {
-	std::vector<edge> edges, in_tree;
+	std::vector<edge> edges, minimum_spanning_tree;
 
 	/*
 		`pred` will represent our Disjointed sets by naming a set head.
@@ -59,14 +59,17 @@ std::vector<edge> kruskal(const adj_list& graph) {
 	auto comp = [&](edge left, edge right) { return left.weight > right.weight; };
 	std::sort(edges.begin(), edges.end(), comp);
 
-	while(!edges.empty()) {
+	while( !edges.empty() ) {
+
 		/* get shortest/least-heavy edge */
 		edge shortest = edges.back();
 		edges.pop_back();
 
+
 		int f_head,s_head; /* first_head, second... */
-		f_head = find_in_tree(shortest.first, pred);
-		s_head = find_in_tree(shortest.second, pred);
+		f_head = get_pred(shortest.first, pred);
+		s_head = get_pred(shortest.second, pred);
+
 
 		/*
 			If the nodes making up a certain edge are
@@ -74,7 +77,7 @@ std::vector<edge> kruskal(const adj_list& graph) {
 		*/
 		if (f_head != s_head) {
 			/* Add that edge to the Min. Span. Tree*/
-			in_tree.push_back(shortest);
+			minimum_spanning_tree.push_back(shortest);
 
 			/*
 				Merge the sets by setting
@@ -83,7 +86,7 @@ std::vector<edge> kruskal(const adj_list& graph) {
 
 				If the head of one set is A and the other is C,
 				as long as we point C to A, all nodes part of the
-				set once headed by C will find A in O(x + 1) time.
+				set once headed by C will find A in linear time.
 			*/
 			if (f_head < s_head)
 				pred[s_head] = f_head;
@@ -92,10 +95,10 @@ std::vector<edge> kruskal(const adj_list& graph) {
 		}
 	}
 
-	return in_tree;
+	return minimum_spanning_tree;
 }
 
-int find_in_tree(int vertex, const std::vector<int>& pred) {
+int get_pred(int vertex, const std::vector<int>& pred) {
 	/*
 		We stop when a node/vertex is its own predecessor.
 		This means we have found the head of the set.
